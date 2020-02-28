@@ -5,7 +5,6 @@ import(
 	"os"
 	"path/filepath"
 	"crypto/sha1"
-	"io/ioutil"
 )
 
 func WalkInRoot(source string) {
@@ -29,11 +28,26 @@ func WalkInRoot(source string) {
 }
 
 func checkSum(fileName string) {
-	data, err := ioutil.ReadFile(fileName)
+
+	f, err := os.Open(fileName)
+
+	defer f.Close()
+
+	fileStat, err := f.Stat(); 
+	if err != nil {
+		fmt.Printf("Error when process file %v\n", err)
+	}
+	fileSize := fileStat.Size()
+	data := make([]byte, fileSize)
+	bytesRead, err := f.Read(data)
+	if err != nil {
+		fmt.Printf("Error when process file %v %d\n", err, bytesRead)
+	}
 	if err != nil {
 		fmt.Printf("Error when process file %v\n", err)
 	}
 	sha1 := sha1.Sum([]byte(data))
 	FileSetBuilder(sha1[:12], fileName)
+	GetXattr(f)
 
 }
